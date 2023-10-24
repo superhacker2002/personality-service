@@ -50,7 +50,6 @@ func (s Service) AddPerson(name, surname, patronymic string) (int, error) {
 
 	id, err := s.r.AddPerson(name, surname, patronymic, gender, nationality, ageInt)
 	if err != nil {
-		log.Println(err)
 		return 0, ErrInternal
 	}
 
