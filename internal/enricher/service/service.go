@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 var (
@@ -33,6 +34,7 @@ func (s Service) AddPerson(name, surname, patronymic string) (int, error) {
 		log.Println(ErrNoAge, ":", err)
 		return 0, ErrNoAge
 	}
+	ageInt, _ := strconv.Atoi(age)
 
 	gender, err := callExternalAPI(fmt.Sprintf("https://api.genderize.io/?name=%s", name))
 	if err != nil {
@@ -46,12 +48,13 @@ func (s Service) AddPerson(name, surname, patronymic string) (int, error) {
 		return 0, ErrNoNationality
 	}
 
-	id, err := s.r.AddPerson(name, surname, patronymic, gender, nationality, age)
+	id, err := s.r.AddPerson(name, surname, patronymic, gender, nationality, ageInt)
 	if err != nil {
 		log.Println(err)
 		return 0, ErrInternal
 	}
 
+	return id, nil
 }
 
 func callExternalAPI(url string) (string, error) {
