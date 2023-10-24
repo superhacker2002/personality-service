@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	Port string `env:"PORT,default=8080"`
-	Db   string `env:"DATABASE_URL,default=postgresql://postgres:2587@localhost:5432/cinema?sslmode=disable"`
+	Db   string `env:"DATABASE_URL,default=postgresql://postgres:postgres@localhost:5432/people?sslmode=disable"`
 }
 
 func New() (Config, error) {

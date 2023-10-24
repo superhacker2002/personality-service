@@ -1,8 +1,11 @@
-package migration
+package postgres
 
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/mattes/migrate/source/file"
+
 	"github.com/golang-migrate/migrate/v4"
 	dStub "github.com/golang-migrate/migrate/v4/database/postgres"
 )

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/superhacker2002/personality-service/internal/config"
+	"github.com/superhacker2002/personality-service/internal/infrastructure/postgres/migration"
 	"log"
 )
 
@@ -23,5 +24,10 @@ func main() {
 			log.Fatalf("failed to close connection with database: %v", err)
 		}
 	}()
+
+	err = postgres.Migrate("file://internal/infrastructure/postgres/migration", db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
