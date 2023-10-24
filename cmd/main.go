@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/superhacker2002/personality-service/internal/config"
-	"github.com/superhacker2002/personality-service/internal/infrastructure/postgres/migration"
+	"github.com/superhacker2002/personality-service/internal/enricher/infrastructure/postgres/migration"
 	"log"
 )
 
@@ -25,7 +25,7 @@ func main() {
 		}
 	}()
 
-	err = postgres.Migrate("file://internal/infrastructure/postgres/migration", db)
+	err = postgres.Migrate("file://internal/enricher/infrastructure/postgres/migration", db)
 	if err != nil {
 		log.Fatal(err)
 	}
