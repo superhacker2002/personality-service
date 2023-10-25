@@ -17,7 +17,7 @@ go get "https://github.com/superhacker2002/personality-service"
 
 **3.** Run web service from the command line:
 ```shell
-go run cmd/maing.go
+go run cmd/main.go
 ```
 
 ## API Endpoints
@@ -28,7 +28,7 @@ curl -X GET "http://localhost:8080?name=Dmitriy&offset=0&limit=2"
 ```
 2. Deleting by ID
 ```
-   curl -i -X DELETE http://localhost:8080/5
+curl -i -X DELETE http://localhost:8080/5
 ```
 3. Changing person information
 ```
