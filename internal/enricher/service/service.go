@@ -1,12 +1,12 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 var (
@@ -33,26 +33,22 @@ func (s Service) DeletePerson(id int) error {
 }
 
 func (s Service) AddPerson(name, surname, patronymic string) (int, error) {
-	age, err := callExternalAPI(fmt.Sprintf("https://api.agify.io/?name=%s", name))
+	averageAge, err := age(name)
 	if err != nil {
-		log.Println(ErrNoAge, ":", err)
-		return 0, ErrNoAge
-	}
-	ageInt, _ := strconv.Atoi(age)
-
-	gender, err := callExternalAPI(fmt.Sprintf("https://api.genderize.io/?name=%s", name))
-	if err != nil {
-		log.Println(ErrNoGender, ":", err)
-		return 0, ErrNoGender
+		return 0, err
 	}
 
-	nationality, err := callExternalAPI(fmt.Sprintf("https://api.nationalize.io/?name=%s", name))
+	averageGender, err := gender(name)
 	if err != nil {
-		log.Println(ErrNoNationality, ":", err)
-		return 0, ErrNoNationality
+		return 0, err
 	}
 
-	id, err := s.r.AddPerson(name, surname, patronymic, gender, nationality, ageInt)
+	averageNationality, err := nationality(name)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := s.r.AddPerson(name, surname, patronymic, averageGender, averageNationality, averageAge)
 	if err != nil {
 		log.Println(err)
 		return 0, ErrInternal
@@ -61,22 +57,91 @@ func (s Service) AddPerson(name, surname, patronymic string) (int, error) {
 	return id, nil
 }
 
-func callExternalAPI(url string) (string, error) {
+func age(name string) (int, error) {
+	ageStruct := struct {
+		Age int `json:"age"`
+	}{}
+
+	b, err := callExternalAPI(fmt.Sprintf("https://api.agify.io/?name=%s", name))
+	if err != nil {
+		log.Println(ErrNoAge, ":", err)
+		return 0, ErrNoAge
+	}
+
+	err = json.Unmarshal(b, &ageStruct)
+	if err != nil {
+		return 0, fmt.Errorf("failed to unmarshal response to struct: %w", err)
+	}
+
+	return ageStruct.Age, nil
+}
+
+func gender(name string) (string, error) {
+	genderStruct := struct {
+		Gender string `json:"gender"`
+	}{}
+
+	b, err := callExternalAPI(fmt.Sprintf("https://api.genderize.io/?name=%s", name))
+	if err != nil {
+		log.Println(ErrNoGender, ":", err)
+		return "", ErrNoGender
+	}
+
+	err = json.Unmarshal(b, &genderStruct)
+	if err != nil {
+		return "", fmt.Errorf("failed to unmarshal response to struct: %w", err)
+	}
+
+	return genderStruct.Gender, nil
+}
+
+func nationality(name string) (string, error) {
+	type Country struct {
+		CountryID   string  `json:"country_id"`
+		Probability float64 `json:"probability"`
+	}
+
+	nationalityStruct := struct {
+		Country []Country `json:"country"`
+	}{}
+
+	b, err := callExternalAPI(fmt.Sprintf("https://api.nationalize.io/?name=%s", name))
+	if err != nil {
+		log.Println(ErrNoNationality, ":", err)
+		return "", ErrNoNationality
+	}
+
+	err = json.Unmarshal(b, &nationalityStruct)
+	if err != nil {
+		return "", fmt.Errorf("failed to unmarshal response to struct: %w", err)
+	}
+
+	return nationalityStruct.Country[0].CountryID, nil
+
+}
+
+func callExternalAPI(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to make request: %w", err)
+		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to get response: %w", err)
+		return nil, fmt.Errorf("failed to get response: %w", err)
 	}
+
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			err = fmt.Errorf("failed to close response body: %w", err)
+		}
+	}()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to get information from response: %w", err)
+		return nil, fmt.Errorf("failed to get information from response: %w", err)
 	}
 
-	return string(b), nil
+	return b, err
 
 }

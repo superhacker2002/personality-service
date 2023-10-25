@@ -31,5 +31,5 @@ func Migrate(sourceURL string, dbURL string) error {
 		return fmt.Errorf("failed to run migration: %w", err)
 	}
 
-	return nil
+	return err
 }
