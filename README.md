@@ -17,7 +17,7 @@ go get "https://github.com/superhacker2002/personality-service"
 
 **3.** Run web service from the command line:
 ```shell
-go run cmd/maing.go
+go run cmd/main.go
 ```
 
 ## API Endpoints
