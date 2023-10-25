@@ -10,14 +10,16 @@ import (
 )
 
 var (
-	ErrNoAge         = errors.New("failed to get person's age")
-	ErrNoGender      = errors.New("failed to get person's gender")
-	ErrNoNationality = errors.New("failed to get person's nationality")
-	ErrInternal      = errors.New("internal server error")
+	ErrNoAge          = errors.New("failed to get person's age")
+	ErrNoGender       = errors.New("failed to get person's gender")
+	ErrNoNationality  = errors.New("failed to get person's nationality")
+	ErrInternal       = errors.New("internal server error")
+	ErrPersonNotFound = errors.New("person was not found")
 )
 
 type repository interface {
 	AddPerson(name, surname, patronymic, gender, nationality string, age int) (int, error)
+	DeletePerson(id int) (found bool, err error)
 }
 
 type Service struct {
@@ -29,6 +31,15 @@ func New(r repository) Service {
 }
 
 func (s Service) DeletePerson(id int) error {
+	found, err := s.r.DeletePerson(id)
+	if err != nil {
+		return ErrInternal
+	}
+	if !found {
+		log.Println("failed to delete person from database:", ErrPersonNotFound)
+		return ErrPersonNotFound
+	}
+
 	return nil
 }
 
@@ -50,7 +61,6 @@ func (s Service) AddPerson(name, surname, patronymic string) (int, error) {
 
 	id, err := s.r.AddPerson(name, surname, patronymic, averageGender, averageNationality, averageAge)
 	if err != nil {
-		log.Println(err)
 		return 0, ErrInternal
 	}
 

@@ -73,10 +73,10 @@ func (h HttpHandler) deleteByIdHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.s.DeletePerson(personId)
-	//if errors.Is(err, service.ErrPersonNotFound) {
-	//	http.Error(w, err.Error(), http.StatusNotFound)
-	//	return
-	//}
+	if errors.Is(err, s.ErrPersonNotFound) {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
