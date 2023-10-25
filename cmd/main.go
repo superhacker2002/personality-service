@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"github.com/superhacker2002/personality-service/internal/config"
-	handler "github.com/superhacker2002/personality-service/internal/enricher/handler/http"
+	"github.com/superhacker2002/personality-service/internal/enricher/controller/httphandler"
 	"github.com/superhacker2002/personality-service/internal/enricher/infrastructure/postgres/migration"
 	"github.com/superhacker2002/personality-service/internal/enricher/infrastructure/repository/postgres"
 	"github.com/superhacker2002/personality-service/internal/enricher/service"
@@ -39,7 +39,7 @@ func main() {
 	router := mux.NewRouter()
 	repo := repository.New(db)
 	serv := service.New(repo)
-	handler.New(serv).SetRoutes(router)
+	httphandler.New(serv).SetRoutes(router)
 
 	log.Fatal(http.ListenAndServe(":"+configs.Port, router))
 }

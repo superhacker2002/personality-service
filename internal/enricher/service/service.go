@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/superhacker2002/personality-service/internal/entity"
 	"io"
 	"log"
 	"net/http"
@@ -15,11 +16,15 @@ var (
 	ErrNoNationality  = errors.New("failed to get person's nationality")
 	ErrInternal       = errors.New("internal server error")
 	ErrPersonNotFound = errors.New("person was not found")
+	ErrPeopleNotFound = errors.New("people were not found")
 )
 
 type repository interface {
 	AddPerson(name, surname, patronymic, gender, nationality string, age int) (int, error)
 	DeletePerson(id int) (found bool, err error)
+	PeopleByName(name string, offset int, limit int) ([]entity.Person, error)
+	AllPeople(offset, limit int) ([]entity.Person, error)
+	Person(id int) (entity.Person, error)
 }
 
 type Service struct {
@@ -28,6 +33,42 @@ type Service struct {
 
 func New(r repository) Service {
 	return Service{r: r}
+}
+
+func (s Service) Person(id int) (entity.Person, error) {
+	people, err := s.r.Person(id)
+	if errors.Is(err, ErrPersonNotFound) {
+		return entity.Person{}, err
+	}
+
+	if err != nil {
+		return entity.Person{}, ErrInternal
+	}
+	return people, nil
+}
+
+func (s Service) AllPeople(offset, limit int) ([]entity.Person, error) {
+	people, err := s.r.AllPeople(offset, limit)
+	if errors.Is(err, ErrPeopleNotFound) {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, ErrInternal
+	}
+	return people, nil
+}
+
+func (s Service) PeopleByName(name string, offset, limit int) ([]entity.Person, error) {
+	people, err := s.r.PeopleByName(name, offset, limit)
+	if errors.Is(err, ErrPeopleNotFound) {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, ErrInternal
+	}
+	return people, nil
 }
 
 func (s Service) DeletePerson(id int) error {
