@@ -7,7 +7,7 @@ import (
 	"github.com/superhacker2002/personality-service/internal/config"
 	handler "github.com/superhacker2002/personality-service/internal/enricher/handler/http"
 	"github.com/superhacker2002/personality-service/internal/enricher/infrastructure/postgres/migration"
-	"github.com/superhacker2002/personality-service/internal/enricher/repository/postgres"
+	"github.com/superhacker2002/personality-service/internal/enricher/infrastructure/repository/postgres"
 	"github.com/superhacker2002/personality-service/internal/enricher/service"
 	"log"
 	"net/http"
@@ -31,7 +31,7 @@ func main() {
 		}
 	}()
 
-	err = postgres.Migrate("file://internal/enricher/infrastructure/postgres/migration", configs.Db)
+	err = postgres.Migrate("file://internal/enricher/infrastructure/postgres/migration/migrations", configs.Db)
 	if err != nil {
 		log.Fatal(err)
 	}
