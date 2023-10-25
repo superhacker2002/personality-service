@@ -2,9 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"github.com/superhacker2002/personality-service/internal/config"
+	handler "github.com/superhacker2002/personality-service/internal/enricher/handler/http"
 	"github.com/superhacker2002/personality-service/internal/enricher/infrastructure/postgres/migration"
+	"github.com/superhacker2002/personality-service/internal/enricher/repository/postgres"
+	"github.com/superhacker2002/personality-service/internal/enricher/service"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -25,9 +31,15 @@ func main() {
 		}
 	}()
 
-	err = postgres.Migrate("file://internal/enricher/infrastructure/postgres/migration", db)
+	err = postgres.Migrate("file://internal/enricher/infrastructure/postgres/migration", configs.Db)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	router := mux.NewRouter()
+	repo := repository.New(db)
+	serv := service.New(repo)
+	handler.New(serv).SetRoutes(router)
+
+	log.Fatal(http.ListenAndServe(":"+configs.Port, router))
 }

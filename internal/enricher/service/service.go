@@ -28,6 +28,10 @@ func New(r repository) Service {
 	return Service{r: r}
 }
 
+func (s Service) DeletePerson(id int) error {
+	return nil
+}
+
 func (s Service) AddPerson(name, surname, patronymic string) (int, error) {
 	age, err := callExternalAPI(fmt.Sprintf("https://api.agify.io/?name=%s", name))
 	if err != nil {
@@ -50,6 +54,7 @@ func (s Service) AddPerson(name, surname, patronymic string) (int, error) {
 
 	id, err := s.r.AddPerson(name, surname, patronymic, gender, nationality, ageInt)
 	if err != nil {
+		log.Println(err)
 		return 0, ErrInternal
 	}
 
