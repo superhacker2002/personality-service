@@ -25,6 +25,7 @@ type service interface {
 	AddPerson(name, surname, patronymic string) (int, error)
 	PeopleByName(name string, offset int, limit int) ([]entity.Person, error)
 	AllPeople(offset, limit int) ([]entity.Person, error)
+	UpdatePerson(id int, name, surname, patronymic string) error
 }
 
 type person struct {
@@ -55,6 +56,7 @@ func (h HttpHandler) SetRoutes(router *mux.Router) {
 	router.HandleFunc("/{personId}", h.deleteByIdHandler).Methods(http.MethodDelete)
 	router.HandleFunc("/{personId}", h.getByIdHandler).Methods(http.MethodGet)
 	router.HandleFunc("/", h.findPeopleHandler).Methods(http.MethodGet)
+	router.HandleFunc("/{personId}", h.updatePersonHandler).Methods(http.MethodPut)
 }
 
 func (h HttpHandler) findPeopleHandler(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +78,7 @@ func (h HttpHandler) findPeopleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errors.Is(err, s.ErrPeopleNotFound) {
+		log.Println(s.ErrPeopleNotFound)
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -161,6 +164,49 @@ func (h HttpHandler) getByIdHandler(w http.ResponseWriter, r *http.Request) {
 	writeResponse(w, entityToDTO(p), http.StatusOK)
 }
 
+func (h HttpHandler) updatePersonHandler(w http.ResponseWriter, r *http.Request) {
+	personId, err := intPathParam(r, "personId")
+	if err != nil {
+		log.Println(err)
+		http.Error(w, ErrInvalidPersonId.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var p = struct {
+		Name       string `json:"name"`
+		Surname    string `json:"surname"`
+		Patronymic string `json:"patronymic,omitempty"`
+	}{}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, ErrReadRequestFail.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err = json.Unmarshal(body, &p); err != nil {
+		log.Println(err)
+		http.Error(w, ErrReadRequestFail.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.s.UpdatePerson(personId, p.Name, p.Surname, p.Patronymic)
+
+	if errors.Is(err, s.ErrPersonNotFound) {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func intPathParam(r *http.Request, varName string) (int, error) {
 	vars := mux.Vars(r)
 	varStr := vars[varName]
@@ -219,8 +265,8 @@ func getPage(r *http.Request) (page, error) {
 
 func entitiesToDTO(people []entity.Person) []person {
 	var DTOSessions []person
-	for _, s := range people {
-		DTOSessions = append(DTOSessions, entityToDTO(s))
+	for _, p := range people {
+		DTOSessions = append(DTOSessions, entityToDTO(p))
 	}
 	return DTOSessions
 }

@@ -118,6 +118,23 @@ func (r Repository) DeletePerson(id int) (bool, error) {
 	return true, nil
 }
 
+func (r Repository) UpdatePerson(id int, name, surname, patronymic string) (bool, error) {
+	res, err := r.db.Exec(`UPDATE people 
+						SET name = $1, surname = $2, patronymic = $3
+						WHERE id = $4`, name, surname, newNullString(patronymic), id)
+	if err != nil {
+		log.Println(err)
+		return false, fmt.Errorf("failed to update person: %w", err)
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if rowsAffected == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 func newNullString(s string) sql.NullString {
 	if len(s) == 0 {
 		return sql.NullString{}

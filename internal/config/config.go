@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Port string `env:"PORT,default=8080"`
-	Db   string `env:"DATABASE_URL,default=postgresql://postgres:postgres@localhost:5432/people?sslmode=disable"`
+	Port          string `env:"PORT,default=8080"`
+	Db            string `env:"DATABASE_URL,default=postgresql://postgres:postgres@localhost:5432/people?sslmode=disable"`
+	MigrationPath string `env:"MIGRATION_FILES_PATH, default=file://internal/enricher/infrastructure/postgres/migration/migrations"`
 }
 
 func New() (Config, error) {

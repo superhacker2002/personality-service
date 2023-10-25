@@ -17,3 +17,8 @@ findall:
 
 byid:
 	curl -X GET "http://localhost:8080/6"
+
+update:
+	curl -i -X PUT http://localhost:8080/10 \
+    	-H 'Content-Type: application/json' \
+    	-d '{"name": "Dmitriy", "surname": "Huev", "patronymic": "Lolich"}'

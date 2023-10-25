@@ -31,9 +31,9 @@ func main() {
 		}
 	}()
 
-	err = postgres.Migrate("file://internal/enricher/infrastructure/postgres/migration/migrations", configs.Db)
+	err = postgres.Migrate(configs.MigrationPath, configs.Db)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to migrate database: %v", err)
 	}
 
 	router := mux.NewRouter()

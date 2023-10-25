@@ -25,6 +25,7 @@ type repository interface {
 	PeopleByName(name string, offset int, limit int) ([]entity.Person, error)
 	AllPeople(offset, limit int) ([]entity.Person, error)
 	Person(id int) (entity.Person, error)
+	UpdatePerson(id int, name, surname, patronymic string) (bool, error)
 }
 
 type Service struct {
@@ -45,6 +46,18 @@ func (s Service) Person(id int) (entity.Person, error) {
 		return entity.Person{}, ErrInternal
 	}
 	return people, nil
+}
+
+func (s Service) UpdatePerson(id int, name, surname, patronymic string) error {
+	found, err := s.r.UpdatePerson(id, name, surname, patronymic)
+	if err != nil {
+		return ErrInternal
+	}
+	if !found {
+		return ErrPersonNotFound
+	}
+
+	return nil
 }
 
 func (s Service) AllPeople(offset, limit int) ([]entity.Person, error) {
